@@ -3,6 +3,7 @@
 - name: install vim
   apt: name=vim state=installed update_cache=true force=yes
   become: yes
+  when: 'ansible_os_family == "Debian"'
 
 - name: Create .vim & colors folders
   file:
