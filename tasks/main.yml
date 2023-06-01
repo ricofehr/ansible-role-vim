@@ -1,24 +1,30 @@
 ---
 
-- name: install vim
-  apt: name=vim state=latest update_cache=true force=yes
-  become: yes
+- name: Install vim
+  become: true
+  ansible.builtin.apt:
+    name: vim
+    state: present
+    update_cache: true
+    force: true
   when: 'ansible_os_family == "Debian"'
 
 - name: Create .vim & colors folders
-  file:
-    path: ~/.vim/colors
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.vim/colors"
     state: directory
-    mode: 0755
+    mode: '0755'
 
-- name: vimrc
-  template:
+- name: Write vimrc
+  ansible.builtin.template:
     src: templates/vimrc.j2
-    dest: ~/.vimrc
-    mode: 0755
+    dest: "{{ ansible_env.HOME }}/.vimrc"
+    mode: '0755'
 
 - name: Wombat256 color scheme
-  template:
-    src: templates/wombat256.j2
-    dest: ~/.vim/colors/wombat256.vim
-    mode: 0755
+  ansible.builtin.template:
+    src: "templates/wombat256.j2"
+    dest: "{{ ansible_env.HOME }}/.vim/colors/wombat256.vim"
+    mode: '0755'
+
+...

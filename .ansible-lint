@@ -1,0 +1,9 @@
+---
+
+profile: production
+
+kinds:
+  - tasks: "**/tasks/**"
+  - vars: "**/{defaults,vars}/**"
+
+...
