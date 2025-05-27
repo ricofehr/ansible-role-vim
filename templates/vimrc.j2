@@ -51,6 +51,10 @@ set history=500
 set wildmenu
 set wildmode=full
 
+" set ack as grep command
+set grepprg=ack\ --nogroup\ $*
+set grepformat=%f:%l:%c:%m
+
 " disable arrow keys
 noremap <Up> <Nop>
 noremap <Down> <Nop>
