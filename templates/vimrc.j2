@@ -25,7 +25,7 @@ set expandtab        " expand tabs to spaces
 set t_Co=256
 syntax on
 " remove endspace line
-autocmd FileType * autocmd BufWritePre <buffer> %s/\s\+$//e
+autocmd BufWritePre * %s/\s\+$//e
 " autocmd FileType js,c,cpp,java,php,javascript,ruby,yaml,bash autocmd BufWritePre <buffer> %s/\s\+$//e
 colorscheme wombat256
 " turn line numbers on
