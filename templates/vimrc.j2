@@ -74,3 +74,12 @@ set tags+=~/.vim/tags/gl
 set tags+=~/.vim/tags/sdl
 set tags+=~/.vim/tags/qt4
 set re=2
+
+" anthropic API key for using the claude.vim plugin
+let g:claude_api_key = "{{ vim_anthropic_key }}"
+
+" claude plugin remaps
+let g:claude_map_implement = "<Leader>ci"
+let g:claude_map_open_chat = "<Leader>cc"
+let g:claude_map_send_chat_message = "<C-]>"
+let g:claude_map_cancel_response = "<Leader>cx"

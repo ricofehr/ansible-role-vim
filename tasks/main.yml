@@ -15,11 +15,14 @@
     state: directory
     mode: '0755'
 
-- name: Create tpope plugins folder
+- name: Create plugins folders
   ansible.builtin.file:
-    path: "{{ ansible_env.HOME }}/.vim/pack/tpope/start"
+    path: "{{ item }}"
     state: directory
     mode: '0755'
+  loop:
+    - "{{ ansible_env.HOME }}/.vim/pack/tpope/start"
+    - "{{ ansible_env.HOME }}/.vim/pack/pasky/start"
 
 - name: Get surround plugin
   ansible.builtin.git:
@@ -32,6 +35,12 @@
     repo: "https://github.com/tpope/vim-commentary"
     dest: "{{ ansible_env.HOME }}/.vim/pack/tpope/start/commentary"
     version: 64a654e
+
+- name: Get claude plugin
+  ansible.builtin.git:
+    repo: "https://github.com/pasky/claude.vim"
+    dest: "{{ ansible_env.HOME }}/.vim/pack/pasky/start/claude.vim"
+    version: 06baac1
 
 - name: Write vimrc
   ansible.builtin.template:
