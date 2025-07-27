@@ -23,6 +23,8 @@ set expandtab        " expand tabs to spaces
 " set textwidth=120
 " turn syntax highlighting on
 set t_Co=256
+" enable folding feature (za)
+set foldmethod=syntax
 syntax on
 " remove endspace line
 autocmd BufWritePre * %s/\s\+$//e
