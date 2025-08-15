@@ -1,3 +1,4 @@
+syntax on
 set enc=utf-8
 set fenc=utf-8
 set termencoding=utf-8
@@ -19,13 +20,15 @@ set tabstop=2        " tab width is 4 spaces
 set shiftwidth=2     " indent also with 4 spaces
 " set noexpandtab
 set expandtab        " expand tabs to spaces
+
+" Python: 4 spaces
+autocmd FileType python setlocal tabstop=4 shiftwidth=4 expandtab
+
+
 " wrap lines at 120 chars. 80 is somewaht antiquated with nowadays displays.
 " set textwidth=120
 " turn syntax highlighting on
 set t_Co=256
-" enable folding feature (za)
-set foldmethod=syntax
-syntax on
 " remove endspace line
 autocmd BufWritePre * %s/\s\+$//e
 " autocmd FileType js,c,cpp,java,php,javascript,ruby,yaml,bash autocmd BufWritePre <buffer> %s/\s\+$//e
@@ -42,6 +45,25 @@ set noerrorbells        " turn off audio bell
 set visualbell          " but leave on a visual bell
 " intelligent comments
 set comments=sl:/*,mb:\ *,elx:\ */
+
+
+" Bash fold setting
+autocmd FileType sh setlocal foldmethod=syntax foldlevelstart=99
+
+" Ansible / YAML fold setting
+autocmd FileType yaml setlocal foldmethod=indent foldlevelstart=99
+
+" Terraform fold setting
+autocmd FileType terraform setlocal foldmethod=syntax foldlevelstart=99
+
+" C++ fold setting
+autocmd FileType cpp setlocal foldmethod=syntax foldlevelstart=99
+
+" Python fold setting
+autocmd FileType python setlocal foldmethod=indent foldlevelstart=99
+
+" Go
+autocmd FileType go setlocal foldmethod=syntax foldlevelstart=99
 
 " add python suffixes
 set suffixesadd+=.py
