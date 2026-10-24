@@ -12,9 +12,9 @@
 - [x] 2.2 `files/agentic-mr.lua`: the kit spec plus `tpope/vim-surround`, each plugin pinned to a commit (the latest tag's commit, or HEAD where the project has no recent tags), resolved with `git ls-remote`; `mr_tool` returns nil when not executable; `mr-base` / `mr` called by absolute path with a `PATH` fallback; verify `:checkhealth lazy` and `:Lazy` show every plugin installed at its pin
 - [x] 2.3 Remove `templates/vimrc.j2`; README: Neovim, plugin list, key maps, the `mr` integration, the removed variable; verify by reading
 
-## 3. Apply on ricombam5
+## 3. Apply on a macOS host
 
-- [x] 3.1 Move `~/.vimrc` to `~/.vimrc.bak-20261022` (chmod 0600); run the role from this checkout against localhost with `--check`, then for real, then once more and confirm `changed=0`
+- [x] 3.1 Move `~/.vimrc` to `~/.vimrc.bak-<date>` (chmod 0600); run the role from this checkout against localhost with `--check`, then for real, then once more and confirm `changed=0`
 - [x] 3.2 Smoke test: `nvim` in a worktree created by `mr new`; `:ClaudeCodeStatus` shows the server, and `claude --ide` in the right pane attaches; `<leader>mr` opens diffview against `mr-base`
 
 ## Workflow follow-up
