@@ -1,57 +1,90 @@
 ---
 
-- name: Install vim
+- name: Install neovim (Debian)
   become: true
   ansible.builtin.apt:
-    name: vim
+    name: neovim
     state: present
     update_cache: true
-    force: true
-  when: 'ansible_os_family == "Debian"'
+  when: ansible_os_family == "Debian"
 
-- name: Create .vim & colors folders
-  ansible.builtin.file:
-    path: "{{ ansible_env.HOME }}/.vim/colors"
-    state: directory
-    mode: '0755'
+- name: Install neovim (macOS)
+  community.general.homebrew:
+    name: neovim
+    state: present
+  when: ansible_os_family == "Darwin"
 
-- name: Create plugins folders
+- name: Read the neovim version
+  ansible.builtin.command:
+    cmd: nvim --version
+  register: nvim_version
+  changed_when: false
+
+- name: Require neovim 0.10 or later
+  ansible.builtin.assert:
+    that: nvim_version.stdout_lines[0] | regex_search('[0-9]+\.[0-9]+\.[0-9]+') is version('0.10', '>=')
+    fail_msg: "{{ nvim_version.stdout_lines[0] }} is too old: init.lua needs vim.uv (Neovim 0.10+)"
+    quiet: true
+
+- name: Create neovim config folders
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
     mode: '0755'
   loop:
-    - "{{ ansible_env.HOME }}/.vim/pack/tpope/start"
-    - "{{ ansible_env.HOME }}/.vim/pack/pasky/start"
+    - "{{ ansible_env.HOME }}/.config/nvim/lua/plugins"
+    - "{{ ansible_env.HOME }}/.config/nvim/colors"
 
-- name: Get surround plugin
-  ansible.builtin.git:
-    repo: "https://github.com/tpope/vim-surround"
-    dest: "{{ ansible_env.HOME }}/.vim/pack/tpope/start/surround"
-    version: v2.2
+- name: Write init.lua
+  ansible.builtin.copy:
+    src: init.lua
+    dest: "{{ ansible_env.HOME }}/.config/nvim/init.lua"
+    mode: '0644'
 
-- name: Get commentary plugin
-  ansible.builtin.git:
-    repo: "https://github.com/tpope/vim-commentary"
-    dest: "{{ ansible_env.HOME }}/.vim/pack/tpope/start/commentary"
-    version: 64a654e
+- name: Write agentic MR plugin spec
+  ansible.builtin.copy:
+    src: agentic-mr.lua
+    dest: "{{ ansible_env.HOME }}/.config/nvim/lua/plugins/agentic-mr.lua"
+    mode: '0644'
 
-- name: Get claude plugin
-  ansible.builtin.git:
-    repo: "https://github.com/pasky/claude.vim"
-    dest: "{{ ansible_env.HOME }}/.vim/pack/pasky/start/claude.vim"
-    version: 06baac1
-
-- name: Write vimrc
-  ansible.builtin.template:
-    src: templates/vimrc.j2
-    dest: "{{ ansible_env.HOME }}/.vimrc"
-    mode: '0755'
+- name: Write the plugin pin check
+  ansible.builtin.copy:
+    src: lazy-check.lua
+    dest: "{{ ansible_env.HOME }}/.config/nvim/lazy-check.lua"
+    mode: '0644'
 
 - name: Wombat256 color scheme
   ansible.builtin.template:
-    src: "templates/wombat256.j2"
-    dest: "{{ ansible_env.HOME }}/.vim/colors/wombat256.vim"
-    mode: '0755'
+    src: wombat256.j2
+    dest: "{{ ansible_env.HOME }}/.config/nvim/colors/wombat256.vim"
+    mode: '0644'
+
+- name: Remove the legacy vim setup managed by previous versions of this role
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ ansible_env.HOME }}/.vimrc"
+    - "{{ ansible_env.HOME }}/.vim/pack/tpope/start/surround"
+    - "{{ ansible_env.HOME }}/.vim/pack/tpope/start/commentary"
+    - "{{ ansible_env.HOME }}/.vim/pack/pasky/start/claude.vim"
+    - "{{ ansible_env.HOME }}/.vim/colors/wombat256.vim"
+
+# lazy-check.lua exits 0 only when every plugin sits on its pinned commit. The check
+# needs no network; the sync runs only when it fails, so a failed sync retries next run.
+- name: Check neovim plugin pins
+  ansible.builtin.command:
+    cmd: nvim --headless "+luafile {{ ansible_env.HOME }}/.config/nvim/lazy-check.lua" "+cquit 1"
+  register: nvim_plugin_pins
+  changed_when: false
+  failed_when: false
+
+- name: Sync neovim plugins to their pins
+  ansible.builtin.command:
+    cmd: >-
+      nvim --headless "+Lazy! sync"
+      "+luafile {{ ansible_env.HOME }}/.config/nvim/lazy-check.lua" "+cquit 1"
+  when: nvim_plugin_pins.rc != 0
+  changed_when: true
 
 ...

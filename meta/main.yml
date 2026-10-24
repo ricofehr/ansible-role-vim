@@ -3,7 +3,7 @@
 galaxy_info:
   role_name: vim
   author: ricofehr
-  description: Install vim and apply config for coding needs
+  description: Install Neovim and its config for agentic coding (one editor per MR worktree)
   company: NextDeploy
   license: MIT
   min_ansible_version: "2.14"
