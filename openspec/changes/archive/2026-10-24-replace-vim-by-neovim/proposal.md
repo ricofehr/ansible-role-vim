@@ -50,4 +50,4 @@ None. `openspec/specs/` is empty.
   `vim_anthropic_key`, so nothing breaks there.
 - `<leader>mr` calls `mr-base`, and `<leader>ml` / `<leader>mw` call `mr`, from the `~/.claude`
   change. Without them, `<leader>mr` falls back to `origin/HEAD`.
-- `octo.nvim` needs an authenticated `gh` (present on `ricombam5`).
+- `octo.nvim` needs an authenticated `gh`.

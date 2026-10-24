@@ -3,8 +3,8 @@
 ## Context
 
 - The role is consumed by `mymac` as the `roles/vim` submodule, with Homebrew already on `PATH`
-  (`geerlingguy.mac.homebrew` runs first). It installs nothing on macOS today. Neovim 0.12.6 is
-  on `ricombam5` through a manual `brew install`.
+  (`geerlingguy.mac.homebrew` runs first). It installs nothing on macOS today. Neovim may already be
+  present through a manual `brew install`.
 - The kit's lazy.nvim spec (`multi-mr-kit/nvim/lua/plugins/agentic-mr.lua`) assumes an existing
   lazy.nvim setup. There is none, so the role owns the bootstrap.
 - The role pins git plugins by tag or commit (`vim-surround` v2.2, `commentary` 64a654e). The
@@ -42,9 +42,9 @@ Homebrew list (a follow-up in that repo); renaming the role or the repository.
 4. **Keep the colorscheme as Vim script.** `wombat256.vim` loads unchanged in Neovim and lands in
    `~/.config/nvim/colors/`.
 5. **Remove only what the old role created**, plugin by plugin. `~/.vim`, `.netrwhist` and any
-   hand-added plugin stay. On
-   `ricombam5` the live `~/.vimrc` holds the key and has no other copy, so before the first run it
-   moves to `~/.vimrc.bak-20261022` (mode 0600), a manual step outside the role.
+   hand-added plugin stay. An existing `~/.vimrc` may hold the old key with no
+   other copy, so before the first run it moves to `~/.vimrc.bak-<date>` (mode 0600), a manual
+   step outside the role.
 6. **The IDE server runs only in `mr` windows** (`cond` on `MR_NAME`), and `termguicolors` is
    off so `wombat256` keeps Vim's 256-colour palette.
 7. **Leader stays the default `\`.** The old `claude.vim` maps used `<Leader>` with the default
@@ -61,7 +61,7 @@ Homebrew list (a follow-up in that repo); renaming the role or the repository.
 
 ## Migration Plan
 
-1. On `ricombam5`: back up `~/.vimrc` (0600), then run the branch's role against localhost (check
+1. On a macOS host: back up `~/.vimrc` (0600), then run the branch's role against localhost (check
    mode, then for real), then rerun to confirm idempotence.
 2. After merge: bump the `mymac` submodule.
 3. Rollback: check out the previous role version and rerun. It recreates `~/.vimrc` (with the

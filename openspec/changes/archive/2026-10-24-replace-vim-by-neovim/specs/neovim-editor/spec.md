@@ -11,7 +11,7 @@ The role SHALL install Neovim with apt on Debian-family hosts and with Homebrew 
 fail when the installed Neovim is older than 0.10. It SHALL NOT install Vim.
 
 #### Scenario: macOS host
-- **WHEN** the role runs on `ricombam5`
+- **WHEN** the role runs on a macOS host
 - **THEN** `nvim --version` reports 0.10 or later, and the run is idempotent (`changed=0` on a second run)
 
 ### Requirement: Settings carried over from vimrc
