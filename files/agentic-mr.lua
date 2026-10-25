@@ -1,6 +1,6 @@
 -- Managed by ansible-role-vim. Agentic multi-MR workflow (lazy.nvim spec).
--- One Neovim per git worktree, started by `mr` in the left tmux pane; the
--- agent (claude / opencode) runs in the right pane of the same window.
+-- One Neovim per git worktree, started by `mr` in that MR's tmux window. Claude
+-- runs in a float inside it (Alt+,), or in a pane beside it when `mr` splits the window.
 -- Every plugin is pinned to a commit (tags can be force-moved): bump the commit
 -- here, then rerun the role: it syncs and checks every pin.
 
@@ -25,6 +25,33 @@ local function mr_base()
     return "origin/HEAD"
   end
   return out[1]
+end
+
+-- Fork point of the MR with its base, so a review covers exactly this MR's changes.
+local function mr_fork_point()
+  local base = mr_base()
+  local out = vim.fn.systemlist({ "git", "merge-base", base, "HEAD" })
+  if vim.v.shell_error ~= 0 or not out[1] then
+    return base
+  end
+  return out[1]
+end
+
+-- Types text on the Claude float's prompt (submitted or not) and focuses the float.
+-- Sends nothing, with the plugin's warning, while no float runs in this Neovim.
+local function claude_send(text, submit)
+  require("claudecode.terminal").send_to_terminal(text, { submit = submit, focus = true })
+end
+
+-- Picker on the worktree's openspec/changes/, from the same root Claude starts in.
+local function pick_openspec_change()
+  local root = require("claudecode.cwd").git_root(vim.fn.getcwd()) or vim.fn.getcwd()
+  local changes = root .. "/openspec/changes"
+  if vim.fn.isdirectory(changes) == 0 then
+    vim.notify("no openspec/changes in " .. root, vim.log.levels.WARN)
+    return
+  end
+  Snacks.picker.files({ cwd = changes })
 end
 
 local function pick_worktree()
@@ -55,9 +82,11 @@ return {
 
   -- Claude Code IDE bridge (same WebSocket/MCP protocol as the VS Code extension).
   -- Each nvim writes its own ~/.claude/ide/<port>.lock with its cwd as workspace,
-  -- so `claude --ide` started in the same worktree attaches to *this* nvim. Only in
-  -- windows opened by `mr` (MR_NAME set): a git commit editor or nvim in ~ must not
-  -- advertise a workspace a Claude session could attach to.
+  -- so Claude in the float, or `claude --ide` started in the same worktree, attaches
+  -- to *this* nvim. Only in windows opened by `mr` (MR_NAME set): a git commit editor
+  -- or nvim in ~ must not advertise a workspace a Claude session could attach to.
+  -- Alt+, rather than Ctrl+,: most terminals cannot send Ctrl+, through tmux. Esc is
+  -- left to Claude (interrupt), so the float hides with Alt+, only.
   {
     "coder/claudecode.nvim",
     commit = "2390c6e45c4789072c293ac69de051d169668b29",
@@ -65,13 +94,39 @@ return {
     cond = function() return vim.env.MR_NAME ~= nil end,
     lazy = false,
     opts = {
-      terminal = { provider = "none" }, -- claude lives in the tmux pane, not in nvim
+      focus_after_send = true,
+      terminal = {
+        provider = "snacks",
+        -- Git root of Neovim's cwd (the worktree `mr` started it in), not of the current
+        -- buffer, which may belong to another repo or a sibling worktree.
+        cwd_provider = function(ctx) return require("claudecode.cwd").git_root(ctx.cwd) end,
+        snacks_win_opts = {
+          position = "float",
+          width = 0.9,
+          height = 0.9,
+          border = "rounded",
+          keys = {
+            claude_hide = { "<M-,>", function(self) self:hide() end, mode = "t", desc = "Claude: hide float" },
+            term_normal = false, -- snacks' double-Esc map would take Esc Esc away from Claude
+          },
+        },
+      },
+      diff_opts = { open_in_new_tab = true, hide_terminal_in_new_tab = true },
     },
     keys = {
+      { "<M-,>", "<cmd>ClaudeCodeFocus<cr>", mode = { "n", "x" }, desc = "Claude: float" },
+      { "<leader>aC", "<cmd>ClaudeCode --continue<cr>", desc = "Claude: continue last session" },
+      { "<leader>ar", "<cmd>ClaudeCode --resume<cr>", desc = "Claude: pick a session" },
       { "<leader>as", "<cmd>ClaudeCodeSend<cr>", mode = "v", desc = "Claude: send selection" },
       { "<leader>ab", "<cmd>ClaudeCodeAdd %<cr>", desc = "Claude: add buffer" },
       { "<leader>aa", "<cmd>ClaudeCodeDiffAccept<cr>", desc = "Claude: accept diff" },
       { "<leader>ad", "<cmd>ClaudeCodeDiffDeny<cr>", desc = "Claude: deny diff" },
+      -- OpenSpec, sent to the float (open it with Alt+, first). Propose waits for the name.
+      { "<leader>se", function() claude_send("/opsx:explore", true) end, desc = "OpenSpec: explore" },
+      { "<leader>sp", function() claude_send("/opsx:propose ", false) end, desc = "OpenSpec: propose" },
+      { "<leader>sa", function() claude_send("/opsx:apply", true) end, desc = "OpenSpec: apply" },
+      { "<leader>sA", function() claude_send("/opsx:archive", true) end, desc = "OpenSpec: archive" },
+      { "<leader>so", pick_openspec_change, desc = "OpenSpec: change files" },
     },
   },
 
@@ -93,7 +148,8 @@ return {
     cmd = { "DiffviewOpen", "DiffviewFileHistory", "DiffviewClose" },
     opts = { use_icons = false }, -- no nvim-web-devicons in this setup
     keys = {
-      { "<leader>mr", function() vim.cmd("DiffviewOpen " .. mr_base() .. "...HEAD") end, desc = "MR: review vs base" },
+      -- One rev: diffview compares it with the working tree, so uncommitted work shows too.
+      { "<leader>mr", function() vim.cmd("DiffviewOpen " .. mr_fork_point()) end, desc = "MR: review vs base" },
       { "<leader>mu", "<cmd>DiffviewOpen<cr>", desc = "MR: uncommitted changes" },
       { "<leader>mh", "<cmd>DiffviewFileHistory %<cr>", desc = "MR: file history" },
       { "<leader>mq", "<cmd>DiffviewClose<cr>", desc = "MR: close review" },
