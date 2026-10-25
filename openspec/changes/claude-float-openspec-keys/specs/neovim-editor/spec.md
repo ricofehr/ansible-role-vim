@@ -6,7 +6,8 @@
 Each Neovim instance opened by `mr` (`MR_NAME` set) SHALL run the claudecode.nvim server, so Claude
 in its float, or a `claude --ide` started in the same directory, attaches to that instance. Other
 Neovim instances SHALL NOT run it. Key maps: `<leader>as` sends the selection (and focuses the float),
-`<leader>ab` adds the buffer, and `<leader>aa` / `<leader>ad` accept / deny the proposed diff.
+`<leader>ab` adds the buffer, and `<leader>aa` / `<leader>ad` accept / deny the proposed diff. A
+proposed diff SHALL open in a new tab, for Claude in the float and in a side pane alike.
 
 #### Scenario: Editor outside an MR window
 - **WHEN** Neovim starts without `MR_NAME` (a git commit editor, nvim in `~`)
@@ -37,7 +38,7 @@ through octo. `<leader>ml` / `<leader>mw` SHALL show `mr ls -p` and switch to an
 In an MR window's Neovim, Claude SHALL run in an embedded float that starts at the git root of
 Neovim's working directory. `Alt+,` opens or focuses the float in normal and visual mode and hides it
 from inside the float. `Esc` SHALL reach Claude unchanged. `<leader>aC` continues the last session and
-`<leader>ar` picks one. A proposed diff SHALL open in a new tab without the Claude terminal in it.
+`<leader>ar` picks one. The diff tab of a proposed edit SHALL NOT show the Claude terminal.
 Other Neovim instances SHALL NOT have the float or its keys.
 
 #### Scenario: Editor outside an MR window
